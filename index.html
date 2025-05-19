@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Converter App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f3;
+            color: #222;
+            padding: 2rem;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.dark {
+            background: #1e1e2f;
+            color: #e0e0e0;
+        }
+
+        body.dark .card {
+            background: #2c2c3e;
+            color: #e0e0e0;
+        }
+
+        #darkToggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+        }
+
+        .card {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            width: 40vw;
+            margin: 0.8rem;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        button {
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background-color: #585279;
+            color: white;
+            cursor: pointer;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin-top: 0.5rem;
+            border: none;
+            border-radius: 8px;
+            background-color: #585279;
+            color: white;
+            cursor: pointer;
+            padding: 1rem 1rem;
+        }
+
+        .set {
+            display: flex;
+        }
+
+        .icon {
+            width: 5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="dark-b" id="darkToggle">ON/OFF Dark Mode</button>
+    <center><img class="icon" src="./icon.png" /></center>
+    <h2>File Converter App</h2>
+    <main class="set">
+        <div class="card">
+            <h3>📊 XLSX to PDF</h3>
+            <input type="file" id="xlsxFile" accept=".xlsx">
+            <button onclick="convertXlsxToPdf()">Convert to PDF</button>
+        </div>
+
+        <div class="card">
+            <h3>📄DOCX to TXT</h3>
+            <input type="file" id="docxToTxtFile" accept=".docx">
+            <button onclick="convertDocxToTxt()">Convert to TXT</button>
+        </div>
+    </main>
+    <main class="set">
+        <div class="card">
+            <h3>📄TXT to DOCX</h3>
+            <input type="file" id="txtToDocxFile" accept=".txt">
+            <button onclick="convertTxtToDocx()">Convert to DOCX</button>
+        </div>
+
+        <div class="card">
+            <h3>🗜 PDF Compressor</h3>
+            <input type="file" id="pdfCompressFile" accept=".pdf">
+            <button onclick="compressPdf()">Compress PDF</button>
+        </div>
+
+
+
+    </main>
+
+
+
+
+    <main class="set">
+        <div class="card">
+            <h3>🧾 TXT to PDF</h3>
+            <input type="file" id="txtFile" accept=".txt">
+            <button onclick="convertTxtToPdf()">Convert TXT to PDF</button>
+        </div>
+
+
+
+
+        <div class="card">
+            <h3>🧾 DOCX TO PDF</h3>
+            <input type="file" id="docxFile" accept=".docx">
+            <button onclick="convertDocxToPdf()">Convert DOCX to PDF</button>
+        </div>
+
+
+    </main>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </main>
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+
+    <script>
+        async function convertDocxToPdf() {
+            const file = document.getElementById('docxFile').files[0];
+            if (!file) return alert("Please select a DOCX file.");
+            const reader = new FileReader();
+            reader.onload = async function (event) {
+                const result = await mammoth.extractRawText({ arrayBuffer: event.target.result });
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const lines = doc.splitTextToSize(result.value, 180);
+                doc.text(lines, 10, 10);
+                doc.save("docx_to_pdf.pdf");
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+
+
+
+    <script>
+        async function convertTxtToPdf() {
+            const file = document.getElementById('txtFile').files[0];
+            if (!file) return alert("Please select a TXT file.");
+            const text = await file.text();
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const lines = doc.splitTextToSize(text, 180);
+            doc.text(lines, 10, 10);
+            doc.save("converted.pdf");
+        }
+    </script>
+    <script>
+        // XLSX to PDF
+        async function convertXlsxToPdf() {
+            const file = document.getElementById('xlsxFile').files[0];
+            if (!file) return alert("Please upload an XLSX file");
+            const data = await file.arrayBuffer();
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const csv = XLSX.utils.sheet_to_csv(worksheet);
+            const rows = csv.trim().split("\n").map(row => row.split(","));
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            let y = 10;
+            rows.forEach(row => {
+                doc.text(row.join("    "), 10, y);
+                y += 10;
+            });
+            doc.save("xlsx_to_pdf.pdf");
+        }
+
+        // DOCX to TXT
+        async function convertDocxToTxt() {
+            const file = document.getElementById('docxToTxtFile').files[0];
+            if (!file) return alert("Please upload a DOCX file");
+            const reader = new FileReader();
+            reader.onload = async function (event) {
+                const arrayBuffer = event.target.result;
+                const result = await mammoth.extractRawText({ arrayBuffer });
+                const blob = new Blob([result.value], { type: "text/plain" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "docx_to_txt.txt";
+                link.click();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // TXT to DOCX
+        async function convertTxtToDocx() {
+            const file = document.getElementById('txtToDocxFile').files[0];
+            if (!file) return alert("Please upload a TXT file");
+            const text = await file.text();
+            const docxContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>${text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</w:t></w:r></w:p></w:body></w:document>`;
+            const blob = new Blob([docxContent], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "txt_to_docx.docx";
+            link.click();
+        }
+
+        // Simple PDF Compressor (re-renders using lower quality image)
+        async function compressPdf() {
+            const file = document.getElementById('pdfCompressFile').files[0];
+            if (!file) return alert("Please upload a PDF file");
+            const reader = new FileReader();
+            reader.onload = async function () {
+                const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(reader.result) });
+                const pdf = await loadingTask.promise;
+                const canvas = document.createElement("canvas");
+                const context = canvas.getContext("2d");
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 1.0 });
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    const imgData = canvas.toDataURL("image/jpeg", 0.5);
+                    if (i > 1) doc.addPage();
+                    doc.addImage(imgData, 'JPEG', 10, 10, 190, 280);
+                }
+                doc.save("compressed.pdf");
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+
+        document.getElementById("darkToggle").onclick = function () {
+            var body = document.body;
+            if (body.className.indexOf("dark") !== -1) {
+                body.className = body.className.replace("dark", "").trim();
+            } else {
+                body.className += " dark";
+            }
+        };
+
+
+        function acceptTerms() {
+            document.getElementById("termsGate").style.display = "none";
+        }
+
+        function declineTerms() {
+            alert("You must accept the terms to use this application.");
+            window.location.href = ""; // or close tab
+        }
+
+        window.onload = () => {
+            document.getElementById("termsGate").style.display = "flex";
+        };
+    </script>
+
+
+
+
+
+
+    <div id="termsGate" style="
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      ">
+        <div style="
+          background: white;
+          padding: 30px;
+          border-radius: 10px;
+          width: 90%;
+          max-width: 500px;
+          text-align: center;
+        ">
+            <h2>Accept Terms & Conditions</h2>
+            <p>
+                By continuing, you agree to our
+                <a href="#" onclick="document.getElementById('popupModal').style.display='block'">Terms & Conditions</a>
+                and Privacy Policy.
+            </p>
+            <button onclick="acceptTerms()">Continue</button>
+            <button onclick="declineTerms()" style="margin-left: 10px; background: gray">
+                Decline
+            </button>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Footer trigger button -->
+    <div style="
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        font-size: 12px;
+        z-index: 100;
+      ">
+        <button onclick="document.getElementById('popupModal').style.display='block'">
+            Terms & Privacy
+        </button>
+    </div>
+
+    <!-- Modal Popup -->
+    <div id="popupModal" style="
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.6);
+      ">
+        <div style="
+          background-color: #fff;
+          margin: 10% auto;
+          padding: 20px;
+          border-radius: 10px;
+          width: 90%;
+          max-width: 600px;
+        ">
+            <span style="float: right; cursor: pointer; font-size: 18px"
+                onclick="document.getElementById('popupModal').style.display='none'">&times;</span>
+            <h3>Terms & Conditions</h3>
+            <p>
+            <p></p>
+            Terms & Conditions Effective Date: 20 May 2025</p>
+            <h2>Terms and Conditions</h2>
+            <p>By using the Budget Finance Calculator (BFC), you agree to be bound by these Terms and Conditions. If you
+                do not agree, please refrain from using the service.</p>
+
+            <h3>1. Use of the Service</h3>
+            <p>BFC is provided “as is” for general budgeting assistance and informational purposes only. It is not a
+                substitute for financial advice. We make no guarantees as to the accuracy, reliability, or completeness
+                of results or outputs from the calculator.</p>
+
+            <h3>2. Third-Party Advertising</h3>
+            <p>BFC integrates advertisements via the Monetag network, operated by Propeller Ads Ltd and its affiliated
+                entities. Monetag may display ads on the site to support monetization. BFC does not control the content
+                of third-party advertisements and disclaims any responsibility for their content, accuracy, or
+                practices.</p>
+
+            <h3>3. Prohibited Use</h3>
+            <p>You agree not to use BFC for any unlawful, harmful, or deceptive purposes. Any misuse of the service,
+                including attempts to bypass ad systems or manipulate results, may result in termination of access and
+                legal action.</p>
+
+            <h3>4. Limitation of Liability</h3>
+            <p>We are not liable for any loss, damage, or expense arising from the use or inability to use BFC,
+                including but not limited to indirect or consequential damages. Use of the service is entirely at your
+                own risk.</p>
+
+            <h3>5. Changes and Termination</h3>
+            <p>We reserve the right to update these Terms at any time. Continued use of the site after changes are
+                posted constitutes acceptance. We may suspend or terminate access to BFC at our discretion.</p>
+
+            <h3>6. Governing Law</h3>
+            <p>These Terms shall be governed by the laws of the Republic of Cyprus. Any disputes arising shall be
+                subject to the exclusive jurisdiction of its courts.</p>
+
+            <h3>Privacy Policy</h3>
+            <p>
+            </p>Privacy Policy Effective Date: 18 May 2025</p>
+            <h2>Privacy Policy</h2>
+            <p>This Privacy Policy explains how BFC collects, uses, and protects information from users.</p>
+
+            <h3>1. Data Collection</h3>
+            <p>BFC does not collect personal data such as names, emails, or contact details. However, we may use browser
+                cookies and third-party analytics tools (e.g., Monetag and its partners) to serve relevant ads and
+                measure website traffic.</p>
+
+            <h3>2. Use of Cookies</h3>
+            <p>We use cookies to enhance your user experience and for ad personalization. Cookies may also be used by
+                third-party advertisers like Monetag. You may choose to disable cookies in your browser settings, though
+                this may impact the website’s functionality.</p>
+
+            <h3>3. Third-Party Ads</h3>
+            <p>We use Monetag (Propeller Ads Ltd) as our advertising partner. They may collect anonymous browsing
+                information to serve tailored ads. Please refer to <a href="https://monetag.com/privacy"
+                    target="_blank">Monetag’s privacy policy</a> and <a href="https://monetag.com/terms"
+                    target="_blank">Monetag’s Terms</a> for more information.</p>
+
+            <h3>4. EU Users and Consent</h3>
+            <p>In accordance with GDPR, users from the European Union are notified of cookie usage and must provide
+                consent before cookies are stored on their device.</p>
+
+            <h3>5. Security</h3>
+            <p>We take standard security measures to protect the data processed on this site. However, no internet-based
+                system is 100% secure, and you use the site at your own risk.</p>
+
+            <h3>6. Updates</h3>
+            <p>This Privacy Policy may be updated periodically. Continued use of BFC indicates your agreement with the
+                current policy.</p>
+
+            </p>
+            <p style="text-align: right; font-style: italic">
+                Created by Vishwash C V / Cospeld
+            </p>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>
