@@ -12,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
 
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
 
 
 
@@ -191,11 +192,12 @@
             <input type="file" id="xlsxFile" accept=".xlsx">
             <button onclick="convertXlsxToPdf()">Convert to PDF</button>
         </div>
-
         <div class="card">
-            <h3>📄DOCX to TXT</h3>
-            <input type="file" id="docxToTxtFile" accept=".docx">
-            <button onclick="convertDocxToTxt()">Convert to TXT</button>
+            <h3>🧾 TXT to PDF</h3>
+            <input type="file" id="txtFile" accept=".txt">
+            <button onclick="convertTxtToPdf()">Convert TXT to PDF</button>
+        </div>
+
         </div>
     </main>
     <main class="set">
@@ -213,26 +215,6 @@
 
 
 
-    </main>
-
-
-
-
-    <main class="set">
-        <div class="card">
-            <h3>🧾 TXT to PDF</h3>
-            <input type="file" id="txtFile" accept=".txt">
-            <button onclick="convertTxtToPdf()">Convert TXT to PDF</button>
-        </div>
-
-
-
-
-        <div class="card">
-            <h3>🧾 DOCX TO PDF</h3>
-            <input type="file" id="docxFile" accept=".docx">
-            <button onclick="convertDocxToPdf()">Convert DOCX to PDF</button>
-        </div>
 
 
     </main>
@@ -244,36 +226,9 @@
 
 
 
-
-
-
-
-
-
-
-
     </main>
 
 
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
-
-    <script>
-        async function convertDocxToPdf() {
-            const file = document.getElementById('docxFile').files[0];
-            if (!file) return alert("Please select a DOCX file.");
-            const reader = new FileReader();
-            reader.onload = async function (event) {
-                const result = await mammoth.extractRawText({ arrayBuffer: event.target.result });
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                const lines = doc.splitTextToSize(result.value, 180);
-                doc.text(lines, 10, 10);
-                doc.save("docx_to_pdf.pdf");
-            };
-            reader.readAsArrayBuffer(file);
-        }
-    </script>
 
 
 
@@ -311,29 +266,28 @@
         }
 
         // DOCX to TXT
-        async function convertDocxToTxt() {
-            const file = document.getElementById('docxToTxtFile').files[0];
-            if (!file) return alert("Please upload a DOCX file");
-            const reader = new FileReader();
-            reader.onload = async function (event) {
-                const arrayBuffer = event.target.result;
-                const result = await mammoth.extractRawText({ arrayBuffer });
-                const blob = new Blob([result.value], { type: "text/plain" });
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = "docx_to_txt.txt";
-                link.click();
-            };
-            reader.readAsArrayBuffer(file);
-        }
+
 
         // TXT to DOCX
         async function convertTxtToDocx() {
             const file = document.getElementById('txtToDocxFile').files[0];
             if (!file) return alert("Please upload a TXT file");
             const text = await file.text();
-            const docxContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>${text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</w:t></w:r></w:p></w:body></w:document>`;
-            const blob = new Blob([docxContent], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+            const docxContent = `
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document
+        xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+        <w:body>
+            <w:p>
+                <w:r>
+                    <w:t>${text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</w:t>
+                </w:r>
+            </w:p>
+        </w:body>
+    </w:document>`;
+            const blob = new Blob([docxContent], {
+                type:
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = "txt_to_docx.docx";
@@ -353,13 +307,13 @@
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const viewport = page.getViewport({ scale: 1.0 });
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    await page.render({ canvasContext: context, viewport: viewport }).promise;
-                    const imgData = canvas.toDataURL("image/jpeg", 0.5);
-                    if (i > 1) doc.addPage();
+                    const page = await pdf.getPage(i); const viewport = page.getViewport({
+                        scale:
+                            1.0
+                    }); canvas.width = viewport.width; canvas.height = viewport.height; await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise; const imgData = canvas.toDataURL("image/jpeg", 0.5); if (i > 1) doc.addPage();
                     doc.addImage(imgData, 'JPEG', 10, 10, 190, 280);
                 }
                 doc.save("compressed.pdf");
@@ -420,7 +374,8 @@
             <h2>Accept Terms & Conditions</h2>
             <p>
                 By continuing, you agree to our
-                <a href="#" onclick="document.getElementById('popupModal').style.display='block'">Terms & Conditions</a>
+                <a href="#" onclick="document.getElementById('popupModal').style.display='block'">Terms &
+                    Conditions</a>
                 and Privacy Policy.
             </p>
             <button onclick="acceptTerms()">Continue</button>
@@ -495,28 +450,34 @@
             <p></p>
             Terms & Conditions Effective Date: 20 May 2025</p>
             <h2>Terms and Conditions</h2>
-            <p>By using the Budget Finance Calculator (BFC), you agree to be bound by these Terms and Conditions. If you
+            <p>By using the Budget Finance Calculator (BFC), you agree to be bound by these Terms and Conditions. If
+                you
                 do not agree, please refrain from using the service.</p>
 
             <h3>1. Use of the Service</h3>
             <p>BFC is provided “as is” for general budgeting assistance and informational purposes only. It is not a
-                substitute for financial advice. We make no guarantees as to the accuracy, reliability, or completeness
+                substitute for financial advice. We make no guarantees as to the accuracy, reliability, or
+                completeness
                 of results or outputs from the calculator.</p>
 
             <h3>2. Third-Party Advertising</h3>
-            <p>BFC integrates advertisements via the Monetag network, operated by Propeller Ads Ltd and its affiliated
-                entities. Monetag may display ads on the site to support monetization. BFC does not control the content
+            <p>BFC integrates advertisements via the Monetag network, operated by Propeller Ads Ltd and its
+                affiliated
+                entities. Monetag may display ads on the site to support monetization. BFC does not control the
+                content
                 of third-party advertisements and disclaims any responsibility for their content, accuracy, or
                 practices.</p>
 
             <h3>3. Prohibited Use</h3>
             <p>You agree not to use BFC for any unlawful, harmful, or deceptive purposes. Any misuse of the service,
-                including attempts to bypass ad systems or manipulate results, may result in termination of access and
+                including attempts to bypass ad systems or manipulate results, may result in termination of access
+                and
                 legal action.</p>
 
             <h3>4. Limitation of Liability</h3>
             <p>We are not liable for any loss, damage, or expense arising from the use or inability to use BFC,
-                including but not limited to indirect or consequential damages. Use of the service is entirely at your
+                including but not limited to indirect or consequential damages. Use of the service is entirely at
+                your
                 own risk.</p>
 
             <h3>5. Changes and Termination</h3>
@@ -534,13 +495,16 @@
             <p>This Privacy Policy explains how BFC collects, uses, and protects information from users.</p>
 
             <h3>1. Data Collection</h3>
-            <p>BFC does not collect personal data such as names, emails, or contact details. However, we may use browser
+            <p>BFC does not collect personal data such as names, emails, or contact details. However, we may use
+                browser
                 cookies and third-party analytics tools (e.g., Monetag and its partners) to serve relevant ads and
                 measure website traffic.</p>
 
             <h3>2. Use of Cookies</h3>
-            <p>We use cookies to enhance your user experience and for ad personalization. Cookies may also be used by
-                third-party advertisers like Monetag. You may choose to disable cookies in your browser settings, though
+            <p>We use cookies to enhance your user experience and for ad personalization. Cookies may also be used
+                by
+                third-party advertisers like Monetag. You may choose to disable cookies in your browser settings,
+                though
                 this may impact the website’s functionality.</p>
 
             <h3>3. Third-Party Ads</h3>
@@ -554,11 +518,13 @@
                 consent before cookies are stored on their device.</p>
 
             <h3>5. Security</h3>
-            <p>We take standard security measures to protect the data processed on this site. However, no internet-based
+            <p>We take standard security measures to protect the data processed on this site. However, no
+                internet-based
                 system is 100% secure, and you use the site at your own risk.</p>
 
             <h3>6. Updates</h3>
-            <p>This Privacy Policy may be updated periodically. Continued use of BFC indicates your agreement with the
+            <p>This Privacy Policy may be updated periodically. Continued use of BFC indicates your agreement with
+                the
                 current policy.</p>
 
             </p>
